@@ -137,6 +137,9 @@
                     <textarea name="message" class="form-control" placeholder="Tell us about your project..." required></textarea>
                 </div>
 
+                <!-- Honey-pot field for bots -->
+                <input type="text" name="_gotcha" style="display:none !important" tabindex="-1" autocomplete="off">
+
                 <button type="submit" class="btn btn-primary" style="width:100%;">Send Message</button>
             </form>
             <!-- FORM END -->
@@ -251,6 +254,11 @@ form.addEventListener("submit", async (e)=>{
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
 
+    const btn = form.querySelector('button[type="submit"]');
+    const originalBtnText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Sending...";
+
     try{
         const res = await fetch("/api/contact",{
             method:"POST",
@@ -262,10 +270,14 @@ form.addEventListener("submit", async (e)=>{
             showToast("Message sent successfully 🚀");
             form.reset();
         }else{
-            showToast("Something went wrong","red");
+            const errData = await res.json();
+            showToast(errData.error || "Something went wrong","red");
         }
     }catch(err){
         showToast("Network error","red");
+    }finally{
+        btn.disabled = false;
+        btn.textContent = originalBtnText;
     }
 });
 </script>
